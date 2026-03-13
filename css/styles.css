@@ -560,6 +560,19 @@ img { max-width: 100%; display: block; }
 
 .form-submit { width: 100%; justify-content: center; }
 
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.form-error {
+  margin-top: 10px;
+  font-size: 0.85rem;
+  color: var(--red);
+  min-height: 1.2em;
+}
+
 .form-success {
   display: none;
   text-align: center;

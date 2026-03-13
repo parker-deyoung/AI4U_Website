@@ -26,25 +26,57 @@ navLinks.querySelectorAll('a').forEach(link => {
   });
 });
 
-// ─── Contact Form: client-side success state ─────────────────
-const contactForm    = document.getElementById('contact-form');
-const formFields     = document.getElementById('form-fields');
-const formSuccess    = document.getElementById('form-success');
+// ─── Contact Form: Formspree integration ─────────────────────
+const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mreykreb';
 
-contactForm.addEventListener('submit', (e) => {
+const contactForm = document.getElementById('contact-form');
+const formFields  = document.getElementById('form-fields');
+const formSuccess = document.getElementById('form-success');
+const submitBtn   = contactForm.querySelector('[type="submit"]');
+
+// Inject error message element below the submit button
+const formError = document.createElement('p');
+formError.className = 'form-error';
+formError.setAttribute('role', 'alert');
+submitBtn.insertAdjacentElement('afterend', formError);
+
+contactForm.addEventListener('submit', async (e) => {
   e.preventDefault();
 
   // Basic validation
   const name    = contactForm.querySelector('[name="name"]').value.trim();
   const email   = contactForm.querySelector('[name="email"]').value.trim();
   const message = contactForm.querySelector('[name="message"]').value.trim();
-
   if (!name || !email || !message) return;
 
-  // TODO: wire up real form submission (e.g. Formspree, EmailJS, Netlify Forms)
-  // For now just show the success state
-  formFields.style.display = 'none';
-  formSuccess.style.display = 'block';
+  // Loading state
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Sending…';
+  formError.textContent = '';
+
+  try {
+    const response = await fetch(FORMSPREE_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Accept': 'application/json' },
+      body: new FormData(contactForm),
+    });
+
+    if (response.ok) {
+      formFields.style.display = 'none';
+      formSuccess.style.display = 'block';
+    } else {
+      const data = await response.json();
+      const msg = data?.errors?.map(err => err.message).join(', ')
+        || 'Something went wrong. Please try again.';
+      formError.textContent = msg;
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Send Message';
+    }
+  } catch {
+    formError.textContent = 'Network error — please check your connection and try again.';
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Send Message';
+  }
 });
 
 // ─── Smooth active nav link highlighting ─────────────────────
